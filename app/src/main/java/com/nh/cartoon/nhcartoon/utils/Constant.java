@@ -41,4 +41,6 @@ public class Constant {
     public static final String DOWNLOAD_BOOK_PATH = "/nhcartoon/books/{0}";
     public static final String DOWNLOAD_IMG_PATH = DOWNLOAD_BOOK_PATH + "/{1}.{2}";
 
+    public static final String SEARCH_URL = "https://nhentai.net/search/?q={0}";
+
 }

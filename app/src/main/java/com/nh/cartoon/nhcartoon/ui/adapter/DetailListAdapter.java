@@ -28,6 +28,7 @@ import java.util.Map;
 
 import static com.nh.cartoon.nhcartoon.utils.Constant.BOOK_IMG_URL;
 import static com.nh.cartoon.nhcartoon.utils.Constant.DETAIL_LIST_SIMPLE_IMG_URL;
+import static com.nh.cartoon.nhcartoon.utils.Constant.TAG_URL;
 
 public class DetailListAdapter extends BaseAdapter {
 
@@ -197,11 +198,12 @@ public class DetailListAdapter extends BaseAdapter {
             tagView.setTag(tmpTag);
             tagList.addView(tagView);
             final String url = tmpTag.getUrl();
+            final String title = showName;
             tagView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     Toast.makeText(mContext, url, Toast.LENGTH_SHORT).show();
-                    mContext.onBackMainActivity(url);
+                    mContext.onBackMainActivity(StringUtils.replaceParam(TAG_URL, url, 1 + ""), title);
                 }
             });
             tagView.setOnLongClickListener(new View.OnLongClickListener() {

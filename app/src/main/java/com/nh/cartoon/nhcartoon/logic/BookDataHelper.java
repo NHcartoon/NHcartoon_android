@@ -8,6 +8,7 @@ import android.os.Looper;
 import android.os.Message;
 import android.text.TextUtils;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.nh.cartoon.nhcartoon.bean.NHBook;
 import com.nh.cartoon.nhcartoon.database.BookDBHelper;
@@ -125,6 +126,20 @@ public class BookDataHelper {
         getBookWithUrl(mLoadUrl);
     }
 
+    public void getBooksForTag(String tag) {
+
+    }
+
+    public void getBooksForSearch(String searchStr) {
+        if (TextUtils.isEmpty(searchStr)) {
+            Toast.makeText(mContext, "search string is empty", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        String url = StringUtils.replaceParam(Constant.SEARCH_URL, searchStr);
+
+        getBookWithUrl(url);
+    }
+
     public void getBookWithUrl(String url) {
         if (!TextUtils.equals(url, mLoadUrl)) {
             mNhBookList.clear();
@@ -132,7 +147,11 @@ public class BookDataHelper {
             mLoadIndex = 1;
         }
         //获取基本信息
-        String endUrl = mLoadUrl + "?page=" + mLoadIndex;
+        String prefix = "?";
+        if (mLoadUrl.contains("?")) {
+            prefix = "&";
+        }
+        String endUrl = mLoadUrl + prefix + "page=" + mLoadIndex;
         Request.Builder builder = new Request.Builder().url(endUrl);
         Call call = client.newCall(builder.build());
         call.enqueue(mListBookCallback);//加入调度队列

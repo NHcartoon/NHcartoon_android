@@ -105,9 +105,10 @@ public class DetailActivity extends AppCompatActivity implements BookDataHelper.
         }
     }
 
-    public void onBackMainActivity(String url) {
+    public void onBackMainActivity(String url, String title) {
         Intent intent = new Intent();
         intent.putExtra("show_url", url);
+        intent.putExtra("show_title", title);
         setResult(2, intent);
         finish();
     }

@@ -1,5 +1,6 @@
 package com.nh.cartoon.nhcartoon.ui;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.view.GravityCompat;
@@ -9,7 +10,9 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -20,6 +23,7 @@ import com.nh.cartoon.nhcartoon.logic.ActivityJumpHelper;
 import com.nh.cartoon.nhcartoon.logic.BookDataHelper;
 import com.nh.cartoon.nhcartoon.logic.DownLoadHelper;
 import com.nh.cartoon.nhcartoon.ui.adapter.BooksAdapter;
+import com.nh.cartoon.nhcartoon.utils.BasicUtils;
 import com.nh.cartoon.nhcartoon.utils.Logger;
 import com.nh.cartoon.nhcartoon.utils.StringUtils;
 import com.nostra13.universalimageloader.core.ImageLoader;
@@ -43,8 +47,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private TextView mBackView;
     private TextView mNextView;
+    private TextView mSearchView;
+    private TextView mStartSearch;
+    private TextView mMainTitle;
+    private EditText mSearchEdit;
 
     private View mListFootView;
+    private View mSearchPanel;
 
     private boolean mHaveMore = true;
 
@@ -90,6 +99,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mBackView = findViewById(R.id.back_view);
         mDrawerLayout = findViewById(R.id.id_drawerlayout);
         mNextView = findViewById(R.id.next_view);
+        mSearchView = findViewById(R.id.search_btn);
+        mSearchPanel = findViewById(R.id.search_panel);
+        mSearchEdit = findViewById(R.id.search_edit);
+        mStartSearch = findViewById(R.id.start_search);
+        mMainTitle = findViewById(R.id.main_title);
+        showMainTile("主页");
 
 
         mBooksAdapter = new BooksAdapter(this, null);
@@ -98,6 +113,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mBackView.setBackgroundResource(R.mipmap.menu_w);
         mBackView.setOnClickListener(this);
         mNextView.setOnClickListener(this);
+        mSearchView.setOnClickListener(this);
+        mStartSearch.setOnClickListener(this);
 
         mDrawerLayout.setDrawerListener(new DrawerLayout.SimpleDrawerListener() {
             @Override
@@ -116,6 +133,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mListFootView = LayoutInflater.from(this).inflate(R.layout.main_list_foot_view, null);
         Button loadMoreBtn = mListFootView.findViewById(R.id.load_more);
         loadMoreBtn.setOnClickListener(this);
+
+
+        mSearchEdit.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View view, boolean hasFocus) {
+                if (!hasFocus) {
+                    BasicUtils.hideInput(MainActivity.this, view);
+                }
+            }
+        });
     }
 
     private void initMenuView() {
@@ -140,8 +167,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if (resultCode == 2) {
             if (requestCode == ActivityJumpHelper.REQUEST_CODE_JUMP_URL) {
                 String url = data.getStringExtra("show_url");
+                String showTitle = data.getStringExtra("show_title");
                 Logger.d(TAG, "onActivityResult -> URL :" + url);
-                mBookDataHelper.getBookWithUrl(StringUtils.replaceParam(TAG_URL, url, 1 + ""));
+                mBookDataHelper.getBookWithUrl(url);
+                showMainTile(showTitle);
                 mBooksAdapter.clearBooks();
             }
         }
@@ -157,8 +186,27 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
+            case R.id.search_btn:
+                Logger.d(TAG, " search btn ");
+                if (mSearchPanel.getVisibility() == View.GONE) {
+                    mSearchPanel.setVisibility(View.VISIBLE);
+                } else {
+                    mSearchPanel.setVisibility(View.GONE);
+                }
+                break;
+            case R.id.start_search:
+                Logger.d(TAG, " start search ");
+                String searchStr = mSearchEdit.getText().toString();
+                Toast.makeText(this, "search:" + searchStr, Toast.LENGTH_SHORT).show();
+                mBookDataHelper.getBooksForSearch(searchStr);
+                showMainTile("search:" + searchStr);
+                mSearchPanel.setVisibility(View.GONE);
+                mSearchEdit.setText("");
+                BasicUtils.hideInput(MainActivity.this, mSearchEdit);
+                break;
             case R.id.next_view:
                 mBookDataHelper.getQuickNext();
+                mListView.setSelection(0);
                 break;
             case R.id.back_view:
                 if (mDrawerLayout.isDrawerOpen(GravityCompat.START)) {
@@ -176,11 +224,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 mHaveMore = true;
                 mBookDataHelper.getBookDataFromHome();
                 mDrawerLayout.closeDrawer(GravityCompat.START);
+                showMainTile(this.getResources().getString(R.string.menu_home));
                 break;
             case R.id.menu_love_btn:
                 mHaveMore = false;
                 mBookDataHelper.getBookDataFromLove();
                 mDrawerLayout.closeDrawer(GravityCompat.START);
+                showMainTile(this.getResources().getString(R.string.menu_love));
                 break;
             case R.id.menu_download_btn:
                 ActivityJumpHelper.goDownLoadActivity(this);
@@ -190,11 +240,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 mHaveMore = false;
                 mBookDataHelper.getBookDataFromHistory();
                 mDrawerLayout.closeDrawer(GravityCompat.START);
+                showMainTile(this.getResources().getString(R.string.menu_history));
                 break;
             case R.id.menu_setting_btn:
                 Toast.makeText(this, "setting", Toast.LENGTH_SHORT).show();
                 break;
         }
+    }
+
+    public void showMainTile(String title) {
+        mMainTitle.setText(title);
     }
 }
 
